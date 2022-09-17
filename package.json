@@ -1,0 +1,8 @@
+{
+  "name": "test",
+  "scripts": {
+    "serve": "docker-compose -f .docker/docker-compose.yml --project-name=\"test\" up -d",
+    "serve:stop": "docker-compose -f .docker/docker-compose.yml --project-name=\"test\" stop",
+    "bash": "docker exec -it test_app bash"
+  }
+}
