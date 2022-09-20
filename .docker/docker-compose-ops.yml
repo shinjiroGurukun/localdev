@@ -1,0 +1,55 @@
+version: '3'
+
+volumes:
+  test-db-store:
+  https-portal-data:
+
+services:
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    links:
+      - app
+    restart: always
+    environment:
+      DOMAINS: 'shin-learn.com -> http://app'
+      # STAGE: 'production'
+      # FORCE_RENEW: 'true'
+    volumes: 
+      - https-portal-data:/var/lib/https-portal
+  
+  db:
+    build: ./db
+    container_name: test_db
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_DATABASE: laravel
+      TZ: "Asia/Tokyo"
+    volumes:
+      - test-db-store:/var/lib/mysql   
+    restart: always   
+
+  app:
+    build: ./app
+    container_name: test_app
+    volumes:
+      - ../src:/var/www/html:cached
+      - ./app/httpd.conf:/etc/apache2/sites-available/000-default.conf:cached
+    environment:
+      - TZ=Asia/Tokyo
+    restart: always
+
+  # phpmyadmin:
+  #   image: phpmyadmin
+  #   container_name: test_pma
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - 8000:80
+  #   environment:
+  #     PMA_HOSTS: db
+  #     PMA_PORT: 3306
+
+      
