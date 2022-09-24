@@ -2,8 +2,24 @@ version: '3'
 
 volumes:
   test-db-store:
+  https-portal-data:
 
 services:
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    links:
+      - app
+    restart: always
+    environment:
+      DOMAINS: 'shin-learn.com -> http://app'
+      # STAGE: 'production'
+      # FORCE_RENEW: 'true'
+    volumes: 
+      - https-portal-data:/var/lib/https-portal
+  
   db:
     build: ./db
     container_name: test_db
@@ -12,7 +28,8 @@ services:
       MYSQL_DATABASE: laravel
       TZ: "Asia/Tokyo"
     volumes:
-      - test-db-store:/var/lib/mysql      
+      - test-db-store:/var/lib/mysql   
+    restart: always   
 
   app:
     build: ./app
@@ -20,24 +37,19 @@ services:
     volumes:
       - ../src:/var/www/html:cached
       - ./app/httpd.conf:/etc/apache2/sites-available/000-default.conf:cached
-    ports:
-      - "80:80"  # apache
-      # - "80:8000" # laravel サーバー
-      # - "5173:5173" # vite
     environment:
       - TZ=Asia/Tokyo
-    # 開発中はlaravelサーバー + npm run devでvite。本番は、npm run build後、コメントアウトしてapacheで起動
-    # command: "php artisan serve --host 0.0.0.0 --port 8000"
+    restart: always
 
-  phpmyadmin:
-    image: phpmyadmin
-    container_name: test_pma
-    depends_on:
-      - db
-    ports:
-      - 8000:80
-    environment:
-      PMA_HOSTS: db
-      PMA_PORT: 3306
+  # phpmyadmin:
+  #   image: phpmyadmin
+  #   container_name: test_pma
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - 8000:80
+  #   environment:
+  #     PMA_HOSTS: db
+  #     PMA_PORT: 3306
 
       

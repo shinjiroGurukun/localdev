@@ -1,0 +1,43 @@
+version: '3'
+
+volumes:
+  test-db-store:
+
+services:
+  db:
+    build: ./db
+    container_name: test_db
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_DATABASE: laravel
+      TZ: "Asia/Tokyo"
+    volumes:
+      - test-db-store:/var/lib/mysql      
+
+  app:
+    build: ./app
+    container_name: test_app
+    volumes:
+      - ../src:/var/www/html:cached
+      - ./app/httpd.conf:/etc/apache2/sites-available/000-default.conf:cached
+    ports:
+      - "80:80"  # apache
+      # - "80:8000" # laravel サーバー
+      # - "5173:5173" # vite
+    environment:
+      - TZ=Asia/Tokyo
+    # 開発中はlaravelサーバー + npm run devでvite。本番は、npm run build後、コメントアウトしてapacheで起動
+    # command: "php artisan serve --host 0.0.0.0 --port 8000"
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: test_pma
+    depends_on:
+      - db
+    ports:
+      - 8000:80
+    environment:
+      PMA_HOSTS: db
+      PMA_PORT: 3306
+
+      
